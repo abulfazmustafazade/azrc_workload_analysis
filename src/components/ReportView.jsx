@@ -35,7 +35,7 @@ export function ReportView({ setRoute }) {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
+    <div className="p-4 md:p-6 space-y-4 page-enter">
       {/* KPI grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
         <KPI label={t("rpt_kpi_total")} value={summary.total} hint={`${visibleDepts.length} ${t("rpt_kpi_total_hint")}`} />

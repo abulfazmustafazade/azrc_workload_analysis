@@ -1,68 +1,118 @@
-import React from "react";
-import { Search, ArrowLeft, Menu, Bell } from "lucide-react";
-import { useTh, useT } from "../contexts";
+import React, { useState } from "react";
+import { Search, ArrowLeft, Menu, Bell, X } from "lucide-react";
+import { useTh, useT, useAuth } from "../contexts";
+import { AzerconnectLogo } from "./shared";
 
-// Yuxarı bar — kontekstual başlıq və axtarış.
-// `route.view`-ə görə eyebrow/title dəyişir.
 export function TopBar({ route, setRoute, onMenu }) {
   const { theme } = useTh();
   const { t } = useT();
+  const { can } = useAuth();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const titles = {
-    dashboard: { eyebrow: t("top_workspace"), title: t("top_dashboard") },
-    library: { eyebrow: t("top_catalog"), title: t("top_positions") },
-    analyze: { eyebrow: t("top_chrono"), title: t("top_analysis") },
-    report: { eyebrow: t("top_final"), title: t("top_report") },
-    admin: { eyebrow: "Admin", title: t("top_admin") },
+    dashboard: { eyebrow: t("top_workspace"),  title: t("top_dashboard") },
+    library:   { eyebrow: t("top_catalog"),    title: t("top_positions") },
+    analyze:   { eyebrow: t("top_chrono"),     title: t("top_analysis") },
+    report:    { eyebrow: t("top_final"),      title: t("top_report") },
+    admin:     { eyebrow: "Admin",             title: t("top_admin") },
   };
   const meta = titles[route.view] || titles.dashboard;
 
   return (
-    <header className="px-4 md:px-8 py-4 flex items-center justify-between gap-2"
-      style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}` }}>
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Mobil hamburger */}
-        <button onClick={onMenu} className="lg:hidden p-1.5" style={{ color: theme.text }}>
-          <Menu size={18} />
-        </button>
+    <header className="flex items-center gap-3 px-4 md:px-6 h-14 flex-shrink-0"
+            style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}` }}>
 
-        {/* Analiz görünüşündə "geri" düyməsi */}
-        {route.view === "analyze" && (
-          <button onClick={() => setRoute({ view: "library" })} className="p-1.5 hidden md:block" style={{ color: theme.text }}>
-            <ArrowLeft size={16} />
+      {/* Mobil hamburger */}
+      <button onClick={onMenu} className="lg:hidden p-2 -ml-1" style={{ color: theme.textMuted }}>
+        <Menu size={18} />
+      </button>
+
+      {/* Mobil logo */}
+      <div className="lg:hidden flex-shrink-0">
+        <AzerconnectLogo style={{ height: 22, width: "auto" }} />
+      </div>
+
+      {/* Geri (analiz) */}
+      {route.view === "analyze" && (
+        <button onClick={() => setRoute({ view: "library" })}
+                className="hidden md:flex items-center gap-1.5 text-xs font-medium mr-1 px-2.5 py-1.5"
+                style={{ border: `1px solid ${theme.border}`, color: theme.textMuted,
+                         borderRadius: 2 }}>
+          <ArrowLeft size={12} /> {t("nav_library")}
+        </button>
+      )}
+
+      {/* Breadcrumb başlıq */}
+      <div className="hidden lg:block min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] font-medium mb-0.5"
+             style={{ color: theme.textDim }}>
+          <span>YÜKAY</span>
+          <span style={{ opacity: 0.4 }}>/</span>
+          <span style={{ color: theme.accent }}>{meta.eyebrow}</span>
+        </div>
+        <h1 className="text-sm font-semibold truncate" style={{ color: theme.text }}>
+          {meta.title}
+        </h1>
+      </div>
+
+      <div className="flex-1" />
+
+      {/* Axtarış — mobil açılır, desktop həmişə görünür */}
+      {searchOpen ? (
+        <div className="flex items-center gap-2 flex-1 max-w-xs fade-in">
+          <div className="relative flex-1">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
+                    style={{ color: theme.textDim }} />
+            <input autoFocus placeholder={t("top_search")}
+                   className="w-full pl-8 pr-3 py-2 text-xs"
+                   style={{ background: theme.surfaceAlt, border: `1px solid ${theme.border}`,
+                            color: theme.text, borderRadius: 2 }} />
+          </div>
+          <button onClick={() => setSearchOpen(false)} style={{ color: theme.textMuted }}>
+            <X size={15} />
           </button>
-        )}
-
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.12em] truncate" style={{ color: theme.textMuted }}>{meta.eyebrow}</div>
-          <h1 className="text-base md:text-xl font-medium mt-0.5 truncate">{meta.title}</h1>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="relative hidden md:block">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
+                    style={{ color: theme.textDim }} />
+            <input placeholder={t("top_search")}
+                   className="pl-8 pr-3 py-2 text-xs w-48 lg:w-60"
+                   style={{ background: theme.surfaceAlt, border: `1px solid ${theme.border}`,
+                            color: theme.text, borderRadius: 2 }} />
+          </div>
+          <button onClick={() => setSearchOpen(true)} className="md:hidden p-2"
+                  style={{ color: theme.textMuted }}>
+            <Search size={16} />
+          </button>
+        </>
+      )}
 
-      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-        {/* Axtarış (desktop only) */}
-        <div className="relative hidden md:block">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: theme.textMuted }} />
-          <input placeholder={t("top_search")} className="pl-9 pr-3 py-2 text-sm w-48 lg:w-64 focus:outline-none"
-            style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
-        </div>
-        <button className="p-2 hidden sm:block" style={{ border: `1px solid ${theme.border}`, color: theme.text }}>
-          <Bell size={15} />
-        </button>
-      </div>
+      {/* Bildiriş */}
+      <button className="relative p-2"
+              style={{ border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 2 }}>
+        <Bell size={15} />
+        <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
+              style={{ background: theme.accent }} />
+      </button>
     </header>
   );
 }
 
-// Səhifə altlığı
 export function Footer() {
   const { theme } = useTh();
   const { t } = useT();
   return (
-    <footer className="px-4 md:px-8 py-3 text-[10px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1"
-      style={{ background: theme.surface, borderTop: `1px solid ${theme.border}`, color: theme.textMuted }}>
-      <span>{t("footer_meta")}</span>
-      <span className="hidden sm:inline">{t("footer_integ")}</span>
+    <footer className="px-4 md:px-6 py-2.5 flex items-center justify-between"
+            style={{ background: theme.surface, borderTop: `1px solid ${theme.border}` }}>
+      <div className="flex items-center gap-3">
+        <AzerconnectLogo style={{ height: 16, width: "auto", opacity: 0.5 }} />
+        <span className="text-[10px]" style={{ color: theme.textDim }}>{t("footer_meta")}</span>
+      </div>
+      <span className="hidden sm:inline text-[10px]" style={{ color: theme.textDim }}>
+        {t("footer_integ")}
+      </span>
     </footer>
   );
 }

@@ -118,12 +118,12 @@ function RoleForm({ role, onSave, onClose }) {
         <FormField label={t("adm_role_name_az")}>
           <input value={r.name_az} onChange={(e) => setR({ ...r, name_az: e.target.value })} disabled={r.system}
             className="w-full px-3 py-2 text-sm focus:outline-none"
-            style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+            style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
         </FormField>
         <FormField label={t("adm_role_name_en")}>
           <input value={r.name_en} onChange={(e) => setR({ ...r, name_en: e.target.value })} disabled={r.system}
             className="w-full px-3 py-2 text-sm focus:outline-none"
-            style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+            style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
         </FormField>
       </div>
 

@@ -40,7 +40,7 @@ export function AppShell() {
       {/* Əsas məzmun */}
       <main className="flex-1 min-w-0 flex flex-col" style={{ background: theme.bg }}>
         <TopBar route={route} setRoute={setRoute} onMenu={() => setSidebarOpen(true)} />
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           {route.view === "dashboard" && <Dashboard setRoute={setRoute} />}
           {route.view === "library" && <PositionLibrary setRoute={setRoute} initialDept={route.dept} />}
           {route.view === "analyze" && <AnalysisEditor pid={route.pid} setRoute={setRoute} />}

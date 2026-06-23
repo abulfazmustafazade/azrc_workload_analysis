@@ -241,7 +241,7 @@ function SimpleNameModal({ title, label, initial, onSave, onClose }) {
       <FormField label={label}>
         <input autoFocus value={v} onChange={(e) => setV(e.target.value)}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
       </FormField>
     </Modal>
   );
@@ -257,13 +257,13 @@ function PositionModal({ title, initial, onSave, onClose }) {
       <FormField label={t("adm_pos_name")}>
         <input autoFocus value={p.name_az} onChange={(e) => setP({ ...p, name_az: e.target.value })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
       </FormField>
       <FormField label={t("adm_pos_stat")}>
         <input type="number" value={p.stat ?? ""}
           onChange={(e) => setP({ ...p, stat: e.target.value === "" ? null : Number(e.target.value) })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
       </FormField>
     </Modal>
   );

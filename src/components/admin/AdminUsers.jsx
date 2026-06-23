@@ -138,13 +138,13 @@ function UserForm({ user, onSave, onClose, roles, structure }) {
       <FormField label={t("adm_full_name")}>
         <input value={u.full_name} onChange={(e) => setU({ ...u, full_name: e.target.value })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
       </FormField>
 
       <FormField label={t("adm_col_email")}>
         <input type="email" value={u.email} onChange={(e) => setU({ ...u, email: e.target.value })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }} />
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }} />
       </FormField>
 
       <FormField label={t("adm_role")}>

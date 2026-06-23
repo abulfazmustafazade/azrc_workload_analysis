@@ -2,4 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
-body { font-family: 'Inter', system-ui, sans-serif; }
+/* ===== Azerconnect Group · YÜKAY Design System ===== */
+
+:root {
+  --ac-navy:       #0B3D6B;
+  --ac-green:      #1E6B3C;
+  --ac-navy-light: #1A5490;
+  --ac-green-light:#2A8A4E;
+  --radius:        4px;
+  --transition:    150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bütün font ailəsi */
+* { font-family: 'Inter', system-ui, -apple-system, sans-serif; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ===== Keçid animasiyaları ===== */
+.page-enter { animation: pageIn 200ms ease-out both; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn 200ms ease-out both; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.slide-in { animation: slideIn 250ms cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Modal açılması */
+.modal-enter { animation: modalIn 200ms cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ===== İnteraktiv elementlər ===== */
+button, [role="button"] {
+  transition: background-color var(--transition), color var(--transition),
+              border-color var(--transition), box-shadow var(--transition),
+              opacity var(--transition), transform var(--transition);
+}
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* Input / select / textarea */
+input, select, textarea {
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 2px rgba(11, 61, 107, 0.15);
+  border-color: var(--ac-navy) !important;
+}
+
+/* ===== Cədvəl sətri hover ===== */
+tr.hoverable { transition: background-color var(--transition); }
+
+/* ===== Sidebar nav item ===== */
+.nav-item { transition: background-color var(--transition), color var(--transition); }
+
+/* ===== Chip düymələr ===== */
+.chip { transition: border-color var(--transition), background-color var(--transition), transform var(--transition); }
+.chip:hover { transform: translateY(-1px); }
+
+/* ===== Status badge ===== */
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 500;
+         letter-spacing: 0.04em; padding: 2px 8px; text-transform: uppercase; }
+
+/* ===== Kart hover ===== */
+.card-hover { transition: box-shadow var(--transition), border-color var(--transition); }
+.card-hover:hover { box-shadow: 0 2px 12px rgba(11,61,107,0.1); }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(11,61,107,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(11,61,107,0.35); }
+
+/* ===== Select-in ox rəngini sıfırla ===== */
+select { background-image: none; }
+
+/* ===== Textarea ===== */
+textarea { resize: vertical; min-height: 80px; }
+
+/* ===== Progress bar animasiyası ===== */
+.progress-bar { transition: width 600ms cubic-bezier(0.4,0,0.2,1); }
+
+/* ===== Gauge bar ===== */
+.gauge-fill { transition: width 800ms cubic-bezier(0.4,0,0.2,1); }
+
+/* ===== Collapsible kart ===== */
+.collapsible { transition: max-height 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease; overflow: hidden; }
+
+/* ===== Focus ring (accessibility) ===== */
+:focus-visible { outline: 2px solid var(--ac-navy); outline-offset: 2px; }
