@@ -5,21 +5,15 @@
 // adapter layeri verir. Prototipdə React state işlədilir; istehsalda
 // həmin funksiyaları çağıracaqsınız.
 //
-// QURMA:
-//   npm install @supabase/supabase-js
-//
-//   .env:
-//     VITE_SUPABASE_URL=https://xxx.supabase.co
-//     VITE_SUPABASE_ANON_KEY=eyJ...
-// ============================================================================
+import { createClient } from '@supabase/supabase-js'
 
-import { createClient } from "@supabase/supabase-js";
+const supabaseUrl = 'https://hlmawofzyljxfoklrjrh.supabase.co'
+const supabaseAnonKey = 'sb_publishable_tfIZOHhqkqNNRIPxMGrBUQ_eiVdXbo5'
 
 export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { persistSession: true, autoRefreshToken: true } }
-);
+  supabaseUrl,
+  supabaseAnonKey
+)
 
 // ============================================================================
 // AUTH
