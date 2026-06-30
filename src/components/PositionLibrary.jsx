@@ -5,12 +5,12 @@ import { flattenStructure, calcNormSay, fmt, fmt0 } from "../lib";
 
 export function PositionLibrary({ setRoute, initialDept }) {
   const { theme } = useTh();
-  const { t } = useT();
+  const { t, lang } = useT();
   const { structure, analyses, inScope } = useAuth();
 
   const all = useMemo(
-    () => flattenStructure(structure).filter(r => inScope(r.dept)),
-    [structure, inScope]
+    () => flattenStructure(structure, lang).filter(r => inScope(r.dept)),
+    [structure, inScope, lang]
   );
   const visibleDepts = [...new Set(all.map(r => r.dept))];
 

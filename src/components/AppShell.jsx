@@ -37,17 +37,17 @@ export function AppShell() {
         </div>
       )}
 
-      {/* Əsas məzmun */}
+      {/* Əsas məzmun — öz scroll-u var, sidebar-dan asılı olmayaraq */}
       <main className="flex-1 min-w-0 flex flex-col" style={{ background: theme.bg }}>
         <TopBar route={route} setRoute={setRoute} onMenu={() => setSidebarOpen(true)} />
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           {route.view === "dashboard" && <Dashboard setRoute={setRoute} />}
           {route.view === "library" && <PositionLibrary setRoute={setRoute} initialDept={route.dept} />}
           {route.view === "analyze" && <AnalysisEditor pid={route.pid} setRoute={setRoute} />}
           {route.view === "report" && <ReportView setRoute={setRoute} />}
           {route.view === "admin" && <AdminLayout subview={route.sub || "users"} setRoute={setRoute} />}
+          <Footer />
         </div>
-        <Footer />
       </main>
     </div>
   );

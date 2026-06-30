@@ -1,19 +1,15 @@
-// ============================================================================
-// YÜKAY · Supabase adapter
-// ============================================================================
-// Bu fayl in-memory state-i Supabase çağırışları ilə əvəz etmək üçün
-// adapter layeri verir. Prototipdə React state işlədilir; istehsalda
-// həmin funksiyaları çağıracaqsınız.
-//
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = 'https://hlmawofzyljxfoklrjrh.supabase.co'
-const supabaseAnonKey = 'sb_publishable_tfIZOHhqkqNNRIPxMGrBUQ_eiVdXbo5'
+import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-)
+  "https://hlmawofzyljxfoklrjrh.supabase.co",
+  "sb_publishable_tfIZOHhqkqNNRIPxMGrBUQ_eiVdXbo5",
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
+);
 
 // ============================================================================
 // AUTH

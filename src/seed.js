@@ -1,143 +1,194 @@
 import { ALL_PERMS } from "./permissions";
 
 // ============================================================================
-// Sistem rolları — Supabase-də roles cədvəlində seed edilir
+// Sistem rolları
 // ============================================================================
 export const INITIAL_ROLES = [
-  {
-    id: "super_admin",
-    name_az: "Super Admin", name_en: "Super Admin",
-    system: true,
-    permissions: [...ALL_PERMS],
-  },
-  {
-    id: "hr_director",
-    name_az: "HR Direktoru", name_en: "HR Director",
-    system: true,
-    permissions: [
-      "dashboard.view", "library.view",
-      "analysis.view", "analysis.create", "analysis.edit", "analysis.delete", "analysis.approve",
-      "report.view", "report.export",
-      "admin.users", "admin.structure", "admin.audit",
-    ],
-  },
-  {
-    id: "hrbp",
-    name_az: "HR Business Partner", name_en: "HR Business Partner",
-    system: true,
-    permissions: [
-      "dashboard.view", "library.view",
-      "analysis.view", "analysis.create", "analysis.edit",
-      "report.view", "report.export",
-    ],
-  },
-  {
-    id: "dept_head",
-    name_az: "Departament rəhbəri", name_en: "Department Head",
-    system: true,
-    permissions: ["dashboard.view", "library.view", "analysis.view", "report.view"],
-  },
-  {
-    id: "viewer",
-    name_az: "Müşahidəçi", name_en: "Viewer",
-    system: true,
-    permissions: ["dashboard.view", "library.view", "analysis.view", "report.view"],
-  },
+  { id: "super_admin", name_az: "Super Admin", name_en: "Super Admin", system: true, permissions: [...ALL_PERMS] },
+  { id: "hr_director", name_az: "HR Direktoru", name_en: "HR Director", system: true,
+    permissions: ["dashboard.view","library.view","analysis.view","analysis.create","analysis.edit","analysis.delete","analysis.approve","report.view","report.export","admin.users","admin.structure","admin.audit"] },
+  { id: "hrbp", name_az: "HR Business Partner", name_en: "HR Business Partner", system: true,
+    permissions: ["dashboard.view","library.view","analysis.view","analysis.create","analysis.edit","report.view","report.export"] },
+  { id: "dept_head", name_az: "Departament rəhbəri", name_en: "Department Head", system: true,
+    permissions: ["dashboard.view","library.view","analysis.view","report.view"] },
+  { id: "viewer", name_az: "Müşahidəçi", name_en: "Viewer", system: true,
+    permissions: ["dashboard.view","library.view","analysis.view","report.view"] },
 ];
 
 // ============================================================================
-// Demo istifadəçilər — fərqli rol və scope-ları test etmək üçün
+// Demo istifadəçilər
 // ============================================================================
 export const INITIAL_USERS = [
-  { id: "u1", full_name: "Elnur Vəliyev", email: "elnur.veliyev@sirket.az",
-    role_id: "super_admin", scope: "all", status: "active", created_at: "2026-01-15" },
-  { id: "u2", full_name: "Nigar Əliyeva", email: "nigar.aliyeva@sirket.az",
-    role_id: "hr_director", scope: "all", status: "active", created_at: "2026-01-20" },
-  { id: "u3", full_name: "Rauf Məmmədov", email: "rauf.mammadov@sirket.az",
-    role_id: "hrbp",
-    scope: ["Anbar Təsərrüfatı və Nəqliyyat Departamenti", "Satınalma departamenti"],
-    status: "active", created_at: "2026-02-03" },
-  { id: "u4", full_name: "Aysel Hüseynova", email: "aysel.huseynova@sirket.az",
-    role_id: "dept_head",
-    scope: ["Anbar Təsərrüfatı və Nəqliyyat Departamenti"],
-    status: "active", created_at: "2026-02-10" },
-  { id: "u5", full_name: "Tural Cəfərov", email: "tural.cafarov@sirket.az",
-    role_id: "viewer",
-    scope: ["Xarici Logistika Departamenti", "Tədarük və Tələb Planlama Departamenti"],
-    status: "active", created_at: "2026-03-01" },
+  { id: "u1", full_name: "Elnur Vəliyev", email: "elnur.veliyev@sirket.az", role_id: "super_admin", scope: "all", status: "active", created_at: "2026-01-15" },
+  { id: "u2", full_name: "Nigar Əliyeva", email: "nigar.aliyeva@sirket.az", role_id: "hr_director", scope: "all", status: "active", created_at: "2026-01-20" },
+  { id: "u3", full_name: "Rauf Məmmədov", email: "rauf.mammadov@sirket.az", role_id: "hrbp",
+    scope: ["Anbar Təsərrüfatı və Nəqliyyat Departamenti", "Satınalma departamenti"], status: "active", created_at: "2026-02-03" },
+  { id: "u4", full_name: "Aysel Hüseynova", email: "aysel.huseynova@sirket.az", role_id: "dept_head",
+    scope: ["Anbar Təsərrüfatı və Nəqliyyat Departamenti"], status: "active", created_at: "2026-02-10" },
+  { id: "u5", full_name: "Tural Cəfərov", email: "tural.cafarov@sirket.az", role_id: "viewer",
+    scope: ["Xarici Logistika Departamenti", "Tədarük və Tələb Planlama Departamenti"], status: "active", created_at: "2026-03-01" },
 ];
 
 // ============================================================================
-// Şirkət strukturu — Excel xronometraj sənədindən çıxarılıb
-// Hierarchic: departments → units (şöbə/bölmə) → positions
+// ŞİRKƏT STRUKTURU — rekursiv ağac modeli
 // ============================================================================
+// Səviyyə zənciri: Company → Division → Department → Sub-department → Unit → Sub-unit
+// Hər node: { id, name_az, name_en, level, children: [], positions: [] }
+// Hər vəzifə: { id, name_az, name_en, stat, ehtiyac, teklif, qeyd, salary }
+//
+// Qeyd: real təşkilatda hər səviyyə doldurulmaya bilər — bəzi departamentlər
+// birbaşa Unit-ə keçə bilər, sub-department olmadan. Struktur bunu dəstəkləyir,
+// çünki `children` və `positions` hər node-da paralel mövcuddur.
 export const INITIAL_STRUCTURE = [
-  { id: "d1", name_az: "Satınalma departamenti", name_en: "Procurement Department",
-    units: [
-      { id: "u1", name_az: "Hazır Məhsul, Xammal Satınalma şöbəsi", positions: [
-        { id: "p1", name_az: "Hazır məhsul / xammal satınalma şöbəsinin rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p2", name_az: "Layihələr üzrə satınalma bölməsinin rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p3", name_az: "Hazır məhsul / xammal bölməsinin rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p4", name_az: "Satınalma üzrə böyük mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p5", name_az: "Satınalma üzrə mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-      ]},
-      { id: "u2", name_az: "Mal-material, Avadanlıq və Xidmət üzrə Satınalma şöbəsi", positions: [
-        { id: "p6", name_az: "Mal-material, avadanlıq və xidmət üzrə satınalma şöbəsinin rəhbəri", stat: 1, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun." },
-        { id: "p7", name_az: "Satınalma üzrə aparıcı mütəxəssis", stat: 3, ehtiyac: 3, teklif: 0, qeyd: null },
-        { id: "p8", name_az: "Satınalma üzrə mütəxəssis", stat: 4, ehtiyac: 4, teklif: 0, qeyd: "ERP optimallaşdırma." },
-        { id: "p9", name_az: "Satınalma üzrə kiçik mütəxxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-      ]},
-    ]},
-  { id: "d2", name_az: "Tədarük və Tələb Planlama Departamenti", name_en: "Supply & Demand Planning",
-    units: [
-      { id: "u3", name_az: "Tələb Planlama şöbəsi", positions: [
-        { id: "p10", name_az: "Tələb Planlama şöbəsinin rəhbəri", stat: null, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun." },
-        { id: "p11", name_az: "Planlama mütəxəssisi", stat: 2, ehtiyac: 2, teklif: 0, qeyd: null },
-      ]},
-      { id: "u4", name_az: "Tədarük Planlama şöbəsi", positions: [
-        { id: "p12", name_az: "Tədarük Planlama şöbəsinin rəhbəri", stat: null, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun." },
-        { id: "p13", name_az: "Aparıcı planlama mütəxəssisi", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p14", name_az: "Planlama mütəxəssisi", stat: 4, ehtiyac: 4, teklif: 0, qeyd: "1 vakant." },
-      ]},
-    ]},
-  { id: "d3", name_az: "Xarici Logistika Departamenti", name_en: "Foreign Logistics",
-    units: [
-      { id: "u5", name_az: "Xarici Logistika bölməsi", positions: [
-        { id: "p15", name_az: "Xarici logistika bölməsinin rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p16", name_az: "Logistika üzrə aparıcı mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p17", name_az: "Logistika üzrə mütəxəssis", stat: 2, ehtiyac: 2, teklif: 1, qeyd: "+1 ştat artırılır." },
-        { id: "p18", name_az: "Logistika üzrə kiçik mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-      ]},
-      { id: "u6", name_az: "Gömrük prosesləri Bölməsi", positions: [
-        { id: "p19", name_az: "Gömrük prosesləri bölməsinin rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p20", name_az: "Deklorasiya üzrə böyük mühasib", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p21", name_az: "Gömrük və Nəqliyyat prosesləri üzrə mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p22", name_az: "Nəqliyyat prosesləri üzrə kiçik mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p23", name_az: "Deklorasiya üzrə mütəxəssis", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-      ]},
-    ]},
-  { id: "d4", name_az: "Anbar Təsərrüfatı və Nəqliyyat Departamenti", name_en: "Warehouse & Transport",
-    units: [
-      { id: "u7", name_az: "Mərkəz Anbar şöbəsi", positions: [
-        { id: "p24", name_az: "Növbə rəisi", stat: 3, ehtiyac: 3, teklif: 0, qeyd: null },
-        { id: "p25", name_az: "Sifariş sayım operatoru", stat: 15, ehtiyac: 15, teklif: 0, qeyd: null },
-        { id: "p26", name_az: "Sifariş toplama operatoru", stat: 70, ehtiyac: 71, teklif: 1, qeyd: null },
-        { id: "p27", name_az: "Avtokar sürücüsü", stat: 25, ehtiyac: 25, teklif: 0, qeyd: null },
-        { id: "p28", name_az: "Fəhlə (bantlama)", stat: 22, ehtiyac: 12, teklif: -10, qeyd: "10 ştat azaldılır." },
-        { id: "p29", name_az: "Fəhlə", stat: 76, ehtiyac: 85, teklif: 9, qeyd: "9 ştat artırılır." },
-      ]},
-      { id: "u8", name_az: "Təmir və Yanacaq Bölməsi", positions: [
-        { id: "p30", name_az: "Bölmə rəhbəri", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p31", name_az: "Avto-elektrik", stat: 3, ehtiyac: 1, teklif: -2, qeyd: "Norm-say aşağı." },
-        { id: "p32", name_az: "Avtokarların Təmiri üzrə mexanik", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-        { id: "p33", name_az: "Çilingər", stat: 6, ehtiyac: 2, teklif: -4, qeyd: "Norm-say əhəmiyyətli aşağı." },
-        { id: "p34", name_az: "Ehtiyyat hissələri üzrə operator", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null },
-      ]},
-    ]},
+  {
+    id: "c1", level: "company",
+    name_az: "Şirkət", name_en: "Company",
+    children: [
+      {
+        id: "div1", level: "division",
+        name_az: "Satınalma və Tədarük Bölməsi", name_en: "Procurement & Supply Division",
+        children: [
+          {
+            id: "d1", level: "department",
+            name_az: "Satınalma departamenti", name_en: "Procurement Department",
+            children: [
+              {
+                id: "u1", level: "unit",
+                name_az: "Hazır Məhsul, Xammal Satınalma şöbəsi", name_en: "Finished Goods & Raw Materials Procurement Unit",
+                children: [],
+                positions: [
+                  { id: "p1", name_az: "Hazır məhsul / xammal satınalma şöbəsinin rəhbəri", name_en: "Head of Finished Goods/Raw Materials Procurement", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 2800 },
+                  { id: "p2", name_az: "Layihələr üzrə satınalma bölməsinin rəhbəri", name_en: "Head of Project Procurement Unit", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 2600 },
+                  { id: "p3", name_az: "Hazır məhsul / xammal bölməsinin rəhbəri", name_en: "Head of Finished Goods/Raw Materials Unit", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 2400 },
+                  { id: "p4", name_az: "Satınalma üzrə böyük mütəxəssis", name_en: "Senior Procurement Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1600 },
+                  { id: "p5", name_az: "Satınalma üzrə mütəxəssis", name_en: "Procurement Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1200 },
+                ],
+              },
+              {
+                id: "u2", level: "unit",
+                name_az: "Mal-material, Avadanlıq və Xidmət üzrə Satınalma şöbəsi", name_en: "Goods, Equipment & Services Procurement Unit",
+                children: [],
+                positions: [
+                  { id: "p6", name_az: "Mal-material, avadanlıq və xidmət üzrə satınalma şöbəsinin rəhbəri", name_en: "Head of Goods/Equipment/Services Procurement", stat: 1, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun. 2 şöbənin birləşdirilməsi tövsiyə olunur.", salary: 2700 },
+                  { id: "p7", name_az: "Satınalma üzrə aparıcı mütəxəssis", name_en: "Lead Procurement Specialist", stat: 3, ehtiyac: 3, teklif: 0, qeyd: null, salary: 1500 },
+                  { id: "p8", name_az: "Satınalma üzrə mütəxəssis", name_en: "Procurement Specialist", stat: 4, ehtiyac: 4, teklif: 0, qeyd: "ERP optimallaşdırma araşdırılır.", salary: 1200 },
+                  { id: "p9", name_az: "Satınalma üzrə kiçik mütəxxəssis", name_en: "Junior Procurement Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 900 },
+                ],
+              },
+            ],
+            positions: [],
+          },
+          {
+            id: "d2", level: "department",
+            name_az: "Tədarük və Tələb Planlama Departamenti", name_en: "Supply & Demand Planning Department",
+            children: [
+              {
+                id: "u3", level: "unit",
+                name_az: "Tələb Planlama şöbəsi", name_en: "Demand Planning Unit",
+                children: [],
+                positions: [
+                  { id: "p10", name_az: "Tələb Planlama şöbəsinin rəhbəri", name_en: "Head of Demand Planning Unit", stat: null, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun hesab edilir.", salary: 2500 },
+                  { id: "p11", name_az: "Planlama mütəxəssisi", name_en: "Planning Specialist", stat: 2, ehtiyac: 2, teklif: 0, qeyd: null, salary: 1300 },
+                ],
+              },
+              {
+                id: "u4", level: "unit",
+                name_az: "Tədarük Planlama şöbəsi", name_en: "Supply Planning Unit",
+                children: [],
+                positions: [
+                  { id: "p12", name_az: "Tədarük Planlama şöbəsinin rəhbəri", name_en: "Head of Supply Planning Unit", stat: null, ehtiyac: null, teklif: -1, qeyd: "Ştatın ləğvi uyğun hesab edilir.", salary: 2500 },
+                  { id: "p13", name_az: "Aparıcı planlama mütəxəssisi", name_en: "Lead Planning Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: "Optimallaşdırma araşdırılır.", salary: 1500 },
+                  { id: "p14", name_az: "Planlama mütəxəssisi", name_en: "Planning Specialist", stat: 4, ehtiyac: 4, teklif: 0, qeyd: "1 ştat vahidi vakantdır.", salary: 1300 },
+                ],
+              },
+            ],
+            positions: [],
+          },
+        ],
+      },
+      {
+        id: "div2", level: "division",
+        name_az: "Logistika və Anbar Bölməsi", name_en: "Logistics & Warehouse Division",
+        children: [
+          {
+            id: "d3", level: "department",
+            name_az: "Xarici Logistika Departamenti", name_en: "Foreign Logistics Department",
+            children: [
+              {
+                id: "u5", level: "unit",
+                name_az: "Xarici Logistika bölməsi", name_en: "Foreign Logistics Unit",
+                children: [],
+                positions: [
+                  { id: "p15", name_az: "Xarici logistika bölməsinin rəhbəri", name_en: "Head of Foreign Logistics Unit", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 2400 },
+                  { id: "p16", name_az: "Logistika üzrə aparıcı mütəxəssis", name_en: "Lead Logistics Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1500 },
+                  { id: "p17", name_az: "Logistika üzrə mütəxəssis", name_en: "Logistics Specialist", stat: 2, ehtiyac: 2, teklif: 1, qeyd: "+1 ştat artırılır.", salary: 1200 },
+                  { id: "p18", name_az: "Logistika üzrə kiçik mütəxəssis", name_en: "Junior Logistics Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 950 },
+                ],
+              },
+              {
+                id: "u6", level: "unit",
+                name_az: "Gömrük prosesləri Bölməsi", name_en: "Customs Processes Unit",
+                children: [
+                  {
+                    id: "su1", level: "sub_unit",
+                    name_az: "Deklorasiya Qrupu", name_en: "Declaration Group",
+                    children: [],
+                    positions: [
+                      { id: "p20", name_az: "Deklorasiya üzrə böyük mühasib", name_en: "Senior Declaration Accountant", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1700 },
+                      { id: "p23", name_az: "Deklorasiya üzrə mütəxəssis", name_en: "Declaration Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1100 },
+                    ],
+                  },
+                ],
+                positions: [
+                  { id: "p19", name_az: "Gömrük prosesləri bölməsinin rəhbəri", name_en: "Head of Customs Processes Unit", stat: 1, ehtiyac: 1, teklif: 0, qeyd: "Öhdəliklərin mütəxəssis kateqoriyalı heyətə ötürülməsi.", salary: 2300 },
+                  { id: "p21", name_az: "Gömrük və Nəqliyyat prosesləri üzrə mütəxəssis", name_en: "Customs & Transport Processes Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1200 },
+                  { id: "p22", name_az: "Nəqliyyat prosesləri üzrə kiçik mütəxəssis", name_en: "Junior Transport Processes Specialist", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 950 },
+                ],
+              },
+            ],
+            positions: [],
+          },
+          {
+            id: "d4", level: "department",
+            name_az: "Anbar Təsərrüfatı və Nəqliyyat Departamenti", name_en: "Warehouse & Transport Department",
+            children: [
+              {
+                id: "u7", level: "unit",
+                name_az: "Mərkəz Anbar şöbəsi", name_en: "Central Warehouse Unit",
+                children: [],
+                positions: [
+                  { id: "p24", name_az: "Növbə rəisi", name_en: "Shift Supervisor", stat: 3, ehtiyac: 3, teklif: 0, qeyd: null, salary: 1400 },
+                  { id: "p25", name_az: "Sifariş sayım operatoru", name_en: "Order Counting Operator", stat: 15, ehtiyac: 15, teklif: 0, qeyd: null, salary: 750 },
+                  { id: "p26", name_az: "Sifariş toplama operatoru", name_en: "Order Picking Operator", stat: 70, ehtiyac: 71, teklif: 1, qeyd: "Çəllək pivə anbarı üzrə ləğv edilən ştat artırılması uyğundur.", salary: 700 },
+                  { id: "p27", name_az: "Avtokar sürücüsü", name_en: "Forklift Driver", stat: 25, ehtiyac: 25, teklif: 0, qeyd: null, salary: 800 },
+                  { id: "p28", name_az: "Fəhlə (bantlama)", name_en: "Worker (Banding)", stat: 22, ehtiyac: 12, teklif: -10, qeyd: "Bantlama sahəsində 10 fəhlə ştatının azaldılması uyğun görülür.", salary: 600 },
+                  { id: "p29", name_az: "Fəhlə", name_en: "Worker", stat: 76, ehtiyac: 85, teklif: 9, qeyd: "9 fəhlə ştatının mərkəzi anbara artırılması uyğun görülür.", salary: 600 },
+                ],
+              },
+              {
+                id: "u8", level: "unit",
+                name_az: "Təmir və Yanacaq Bölməsi", name_en: "Repair & Fuel Unit",
+                children: [],
+                positions: [
+                  { id: "p30", name_az: "Bölmə rəhbəri", name_en: "Unit Head", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 2200 },
+                  { id: "p31", name_az: "Avto-elektrik", name_en: "Auto Electrician", stat: 3, ehtiyac: 1, teklif: -2, qeyd: "Norm-say göstəricisi aşağı.", salary: 1000 },
+                  { id: "p32", name_az: "Avtokarların Təmiri üzrə mexanik", name_en: "Forklift Repair Mechanic", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 1100 },
+                  { id: "p33", name_az: "Çilingər", name_en: "Locksmith/Mechanic", stat: 6, ehtiyac: 2, teklif: -4, qeyd: "Norm-say göstəricisi əhəmiyyətli aşağıdır.", salary: 950 },
+                  { id: "p34", name_az: "Ehtiyyat hissələri üzrə operator", name_en: "Spare Parts Operator", stat: 1, ehtiyac: 1, teklif: 0, qeyd: null, salary: 850 },
+                ],
+              },
+            ],
+            positions: [],
+          },
+        ],
+      },
+    ],
+    positions: [],
+  },
 ];
 
 // ============================================================================
-// Pre-loaded analizlər — vəzifə təlimatı (JD) + müsahibə öhdəlikləri
+// Pre-loaded analizlər (vəzifə id-ləri dəyişməyib, struktur dəyişib)
 // ============================================================================
 export const INITIAL_ANALYSES = {
   p30: {
@@ -150,7 +201,7 @@ export const INITIAL_ANALYSES = {
       { task: "Yol Polisi tərəfindən cərimə meydançasına aparılan maşınların çıxarılmasına kömək edirəm", norma: 1, period: "daily", dmin: 60, dmax: 90, fmin: 1, fmax: 1 },
     ],
     jobDescription: {
-      summary: "Təmir və Yanacaq Bölməsinin gündəlik fəaliyyətini idarə edir, bölmə əməkdaşlarının işini koordinasiya edir və avtopark texniki vəziyyətinə cavabdehlik daşıyır. Anbar Təsərrüfatı və Nəqliyyat departamentinin rəhbərliyinə hesabat verir.",
+      summary: "Təmir və Yanacaq Bölməsinin gündəlik fəaliyyətini idarə edir, bölmə əməkdaşlarının işini koordinasiya edir və avtopark texniki vəziyyətinə cavabdehlik daşıyır.",
       duties: [
         { id: "jd30_1", text: "Bölmə əməkdaşlarının iş axınını idarə etmək və koordinasiya etmək" },
         { id: "jd30_2", text: "Avtopark üzrə texniki vəziyyəti monitorinq etmək və problemləri aşkar etmək" },
@@ -168,7 +219,7 @@ export const INITIAL_ANALYSES = {
       { task: "Ərazidə nasaz olan maşınların təmir edilməsi", norma: 1, period: "weekly", dmin: 120, dmax: 120, fmin: 2, fmax: 3 },
     ],
     jobDescription: {
-      summary: "Anbar avtoparkının və yük maşınlarının elektrik sistemlərinin diaqnostikası, təmiri və texniki xidmətini həyata keçirir. Bölmə rəhbərinə hesabat verir.",
+      summary: "Anbar avtoparkının və yük maşınlarının elektrik sistemlərinin diaqnostikası, təmiri və texniki xidmətini həyata keçirir.",
       duties: [
         { id: "jd31_1", text: "Avtomobillərin elektrik sistemlərinin diaqnostikası və problemlərin aşkar edilməsi" },
         { id: "jd31_2", text: "Akkumulyator, generator, starter və işıqlandırma sistemlərinin yoxlanması" },
@@ -187,7 +238,7 @@ export const INITIAL_ANALYSES = {
       { task: "Maşınların yağ dəyişimi", norma: 1, period: "daily", dmin: 30, dmax: 30, fmin: 3, fmax: 5 },
     ],
     jobDescription: {
-      summary: "Anbar avtoparkına daxil olan avtokarların, yük maşınlarının və texnikanın mexaniki təmiri və texniki xidməti ilə məşğul olur. Bölmə rəhbərinə tabedir.",
+      summary: "Anbar avtoparkına daxil olan avtokarların, yük maşınlarının və texnikanın mexaniki təmiri və texniki xidməti ilə məşğul olur.",
       duties: [
         { id: "jd33_1", text: "Avtokarların və texnikanın mexaniki təmiri" },
         { id: "jd33_2", text: "Profilaktik texniki baxış və müntəzəm xidmət" },
@@ -209,7 +260,7 @@ export const INITIAL_ANALYSES = {
       { task: "Servislə əlaqə yaratmaq və problemləri həll etmək", norma: 1, period: "daily", dmin: 60, dmax: 60, fmin: 1, fmax: 1 },
     ],
     jobDescription: {
-      summary: "Avtokar parkının texniki idarə olunması, sürücülərin işinin koordinasiyası və profilaktik texniki xidmətin təşkilinə cavabdehdir. Bölmə rəhbərinə hesabat verir.",
+      summary: "Avtokar parkının texniki idarə olunması, sürücülərin işinin koordinasiyası və profilaktik texniki xidmətin təşkilinə cavabdehdir.",
       duties: [
         { id: "jd32_1", text: "Avtokar parkının texniki vəziyyətinin monitorinqi və idarə edilməsi" },
         { id: "jd32_2", text: "Sürücülərlə iş təşkili və gündəlik iclasların aparılması" },

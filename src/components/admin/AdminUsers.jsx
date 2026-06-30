@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { UserPlus, Edit2, Trash2 } from "lucide-react";
 import { useTh, useT, useAuth } from "../../contexts";
-import { uuid } from "../../lib";
+import { uuid, nodeName } from "../../lib";
 import { Modal, FormField } from "../shared";
 
 // İstifadəçi idarəetməsi — CRUD cədvəli və əlavə/düzəliş modal-ı.
@@ -130,7 +130,10 @@ function UserForm({ user, onSave, onClose, roles, structure }) {
   const [u, setU] = useState(user || {
     full_name: "", email: "", role_id: "viewer", scope: [], status: "active",
   });
-  const allDepts = structure.map((d) => d.name_az);
+  // Scope üçün "Department" səviyyəsindəki bütün node adlarını rekursiv toplayır.
+  // (Division/Company özü scope olaraq seçilmir — yalnız Department səviyyəsi və aşağı
+  // əməliyyat baxımından mənalıdır, lakin sadəlik üçün bütün "department" level node-ları çıxarırıq.)
+  const allDepts = collectDeptNames(structure, lang);
   const isAllScope = u.scope === "all";
 
   return (
@@ -150,7 +153,7 @@ function UserForm({ user, onSave, onClose, roles, structure }) {
       <FormField label={t("adm_role")}>
         <select value={u.role_id} onChange={(e) => setU({ ...u, role_id: e.target.value })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }}>
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }}>
           {roles.map((r) => (
             <option key={r.id} value={r.id}>{lang === "az" ? r.name_az : r.name_en}</option>
           ))}
@@ -180,11 +183,25 @@ function UserForm({ user, onSave, onClose, roles, structure }) {
       <FormField label={t("adm_col_status")}>
         <select value={u.status} onChange={(e) => setU({ ...u, status: e.target.value })}
           className="w-full px-3 py-2 text-sm focus:outline-none"
-          style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, color: theme.text }}>
+          style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.text, borderRadius: 2 }}>
           <option value="active">{t("adm_status_active")}</option>
           <option value="inactive">{t("adm_status_inactive")}</option>
         </select>
       </FormField>
     </Modal>
   );
+}
+
+// Strukturda "department" səviyyəsindəki bütün node adlarını rekursiv tapır.
+// Scope-lar bu adlara əsaslanır (inScope() Department adı ilə müqayisə edir).
+function collectDeptNames(structure, lang) {
+  const names = [];
+  function walk(nodes) {
+    nodes.forEach((n) => {
+      if (n.level === "department") names.push(nodeName(n, lang));
+      if (n.children?.length) walk(n.children);
+    });
+  }
+  walk(structure);
+  return names;
 }

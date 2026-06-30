@@ -41,10 +41,18 @@ export default function App() {
   // RBAC helperləri — cari istifadəçinin rolu və scope-una əsaslanır
   const userRole = currentUser ? roles.find((r) => r.id === currentUser.role_id) : null;
   const can = (perm) => userRole?.permissions?.includes(perm) || false;
-  const inScope = (deptName) => {
+
+  // Scope yoxlaması: deptName ya "Department" adı (geriyə uyğunluq), ya da
+  // pathNames massivi ilə çağırılırsa (hər hansı node ata zənciri), zəncirdəki
+  // istənilən adın scope-da olması kifayətdir.
+  const inScope = (deptNameOrPath) => {
     if (!currentUser) return false;
     if (currentUser.scope === "all") return true;
-    return Array.isArray(currentUser.scope) && currentUser.scope.includes(deptName);
+    if (!Array.isArray(currentUser.scope)) return false;
+    if (Array.isArray(deptNameOrPath)) {
+      return deptNameOrPath.some((n) => currentUser.scope.includes(n));
+    }
+    return currentUser.scope.includes(deptNameOrPath);
   };
 
   // Auth context-i — bütün state və helperlər bir yerdə

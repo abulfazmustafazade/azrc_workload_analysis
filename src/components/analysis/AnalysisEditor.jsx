@@ -5,9 +5,10 @@ import {
 } from "lucide-react";
 import { useTh, useT, useAuth } from "../../contexts";
 import { WORK_DAY_MIN } from "../../permissions";
-import { flattenStructure, calcNormSay, recommendation, taskDailyMin, fmt, fmt0 } from "../../lib";
+import { flattenStructure, calcNormSay, recommendation, calcSavings, taskDailyMin, fmt, fmt0, fmtMoney } from "../../lib";
 import { SectionTitle, NoAccess } from "../shared";
 import { JobDescriptionCard } from "./JobDescriptionCard";
+import { SalaryCard } from "./SalaryCard";
 import { SummaryPanel } from "./SummaryPanel";
 import { NumCell, AddTaskRow, MobileAddTask } from "./TaskInputs";
 
@@ -19,12 +20,12 @@ import { NumCell, AddTaskRow, MobileAddTask } from "./TaskInputs";
 // 5. Sağ panel: norma standartları, gauge, hesablama, müqayisə, audit
 export function AnalysisEditor({ pid, setRoute }) {
   const { theme } = useTh();
-  const { t } = useT();
-  const { structure, analyses, setAnalyses, can, inScope, currentUser, pushAudit } = useAuth();
+  const { t, lang } = useT();
+  const { structure, setStructure, analyses, setAnalyses, can, inScope, currentUser, pushAudit } = useAuth();
 
   const meta = useMemo(
-    () => flattenStructure(structure).find((r) => r.id === pid),
-    [structure, pid]
+    () => flattenStructure(structure, lang).find((r) => r.id === pid),
+    [structure, pid, lang]
   );
   const existing = analyses[pid];
 
@@ -32,6 +33,7 @@ export function AnalysisEditor({ pid, setRoute }) {
   const [tasks, setTasks] = useState(existing?.tasks || []);
   const [jd, setJd] = useState(existing?.jobDescription || { summary: "", duties: [] });
   const [notes, setNotes] = useState(meta?.qeyd || "");
+  const [salary, setSalary] = useState(meta?.salary ?? "");
   const [showAdd, setShowAdd] = useState(!existing && tasks.length === 0);
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -40,6 +42,7 @@ export function AnalysisEditor({ pid, setRoute }) {
     setTasks(existing?.tasks || []);
     setJd(existing?.jobDescription || { summary: "", duties: [] });
     setNotes(meta?.qeyd || "");
+    setSalary(meta?.salary ?? "");
   }, [pid]);
 
   if (!meta) return <div className="p-8">404</div>;
@@ -49,8 +52,21 @@ export function AnalysisEditor({ pid, setRoute }) {
 
   const calc = calcNormSay(tasks);
   const rec = recommendation(meta.stat, calc.maxNormSay, theme, t);
+  const savings = calcSavings({ ...meta, salary: Number(salary) || 0 }, rec);
   const utilPctAvg = (calc.avgDaily / WORK_DAY_MIN) * 100;
   const utilPctMax = (calc.maxDaily / WORK_DAY_MIN) * 100;
+
+  // Maaşı struktur ağacında müvafiq vəzifə node-unda yeniləyir (rekursiv)
+  const updateSalaryInStructure = (newSalary) => {
+    const recur = (nodes) => nodes.map((node) => ({
+      ...node,
+      positions: (node.positions || []).map((p) =>
+        p.id === pid ? { ...p, salary: newSalary } : p
+      ),
+      children: node.children ? recur(node.children) : node.children,
+    }));
+    setStructure(recur(structure));
+  };
 
   // Task CRUD əməliyyatları
   const updateTask = (idx, field, value) => {
@@ -83,6 +99,8 @@ export function AnalysisEditor({ pid, setRoute }) {
         updatedBy: currentUser.full_name,
       },
     });
+    const newSalary = salary === "" ? null : Number(salary);
+    if (newSalary !== meta.salary) updateSalaryInStructure(newSalary);
     pushAudit(existing ? "audit_update" : "audit_create", `${meta.pos} (xronometraj)`);
   };
 
@@ -144,6 +162,10 @@ export function AnalysisEditor({ pid, setRoute }) {
 
         {/* Vəzifə təlimatı kartı */}
         <JobDescriptionCard jd={jd} setJd={setJd} canEdit={canEdit} />
+
+        {/* Maaş və qənaət kartı */}
+        <SalaryCard salary={salary} setSalary={setSalary} canEdit={canEdit}
+                    rec={rec} savings={savings} currentStat={meta.stat} />
 
         {/* Müsahibə öhdəlikləri kartı */}
         <div style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>

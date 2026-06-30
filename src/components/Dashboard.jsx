@@ -1,17 +1,17 @@
 import React, { useMemo } from "react";
-import { ChevronRight, Users, BarChart2, TrendingUp, Activity } from "lucide-react";
+import { ChevronRight, Users, BarChart2, TrendingUp, Activity, PiggyBank } from "lucide-react";
 import { useTh, useT, useAuth } from "../contexts";
-import { flattenStructure, calcNormSay, recommendation, fmt, fmt0 } from "../lib";
+import { flattenStructure, calcNormSay, recommendation, calcTotalSavings, fmt, fmt0, fmtMoney } from "../lib";
 import { KPI, SectionTitle, Stat } from "./shared";
 
 export function Dashboard({ setRoute }) {
   const { theme } = useTh();
-  const { t } = useT();
+  const { t, lang } = useT();
   const { structure, analyses, inScope } = useAuth();
 
   const all = useMemo(
-    () => flattenStructure(structure).filter(r => inScope(r.dept)),
-    [structure, inScope]
+    () => flattenStructure(structure, lang).filter(r => inScope(r.dept)),
+    [structure, inScope, lang]
   );
   const visibleDepts = [...new Set(all.map(r => r.dept))];
 
@@ -36,12 +36,13 @@ export function Dashboard({ setRoute }) {
   });
 
   const recentAnalyses = all.filter(r => analyses[r.id]).slice(0, 8);
+  const totalSavings = useMemo(() => calcTotalSavings(all, analyses, theme, t), [all, analyses, theme, t]);
 
   return (
     <div className="p-4 md:p-6 space-y-5 page-enter">
 
       {/* KPI grid */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
         <KPI label={t("kpi_positions")} value={stats.total}
              hint={`${visibleDepts.length} ${t("kpi_positions_hint")}`}
              icon={Users} />
@@ -57,6 +58,10 @@ export function Dashboard({ setRoute }) {
              hint={`+${stats.posUp} artım · ${stats.posDown} azalma`}
              icon={TrendingUp}
              trend={stats.variance > 0 ? "up" : stats.variance < 0 ? "down" : undefined} />
+        <KPI label={t("kpi_savings")} value={fmtMoney(totalSavings.annual)}
+             hint={`${totalSavings.positionsAffected} ${t("savings_affected")}`}
+             icon={PiggyBank}
+             trend={totalSavings.annual > 0 ? "up" : undefined} />
       </div>
 
       {/* Hero CTA */}
