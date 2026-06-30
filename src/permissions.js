@@ -34,6 +34,6 @@ export const PERM_LABELS = {
 };
 
 // İş günü standartları
-export const WORK_DAY_MIN = 420;       // 7 saat
+export const WORK_DAY_MIN = 360;       // 7 saat
 export const WORK_WEEK_DAYS = 5;
 export const WORK_MONTH_DAYS = 22;
