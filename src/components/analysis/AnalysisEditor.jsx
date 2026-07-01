@@ -3,10 +3,11 @@ import {
   ArrowLeft, ChevronRight, ChevronDown, CheckCircle2, AlertCircle,
   Save, Plus, Trash2, ListChecks,
 } from "lucide-react";
-import { useTh, useT, useAuth } from "../../contexts";
+import { useTh, useT, useAuth, useToast } from "../../contexts";
 import { WORK_DAY_MIN } from "../../permissions";
 import { flattenStructure, calcNormSay, recommendation, calcSavings, taskDailyMin, fmt, fmt0, fmtMoney } from "../../lib";
 import { SectionTitle, NoAccess } from "../shared";
+import { analysesApi, structureApi } from "../../db";
 import { JobDescriptionCard } from "./JobDescriptionCard";
 import { SalaryCard } from "./SalaryCard";
 import { SummaryPanel } from "./SummaryPanel";
@@ -21,7 +22,8 @@ import { NumCell, AddTaskRow, MobileAddTask } from "./TaskInputs";
 export function AnalysisEditor({ pid, setRoute }) {
   const { theme } = useTh();
   const { t, lang } = useT();
-  const { structure, setStructure, analyses, setAnalyses, can, inScope, currentUser, pushAudit } = useAuth();
+  const { structure, analyses, can, inScope, currentUser, pushAudit, reloadData } = useAuth();
+  const { addToast } = useToast();
 
   const meta = useMemo(
     () => flattenStructure(structure, lang).find((r) => r.id === pid),
@@ -56,16 +58,13 @@ export function AnalysisEditor({ pid, setRoute }) {
   const utilPctAvg = (calc.avgDaily / WORK_DAY_MIN) * 100;
   const utilPctMax = (calc.maxDaily / WORK_DAY_MIN) * 100;
 
-  // Maaşı struktur ağacında müvafiq vəzifə node-unda yeniləyir (rekursiv)
-  const updateSalaryInStructure = (newSalary) => {
-    const recur = (nodes) => nodes.map((node) => ({
-      ...node,
-      positions: (node.positions || []).map((p) =>
-        p.id === pid ? { ...p, salary: newSalary } : p
-      ),
-      children: node.children ? recur(node.children) : node.children,
-    }));
-    setStructure(recur(structure));
+  // Maaşı DB-dəki vəzifə sətirində yeniləyir
+  const updateSalaryInDB = async (newSalary) => {
+    try {
+      await structureApi.updatePosition(pid, { salary: newSalary });
+    } catch (err) {
+      console.error("[YÜKAY] Maaş yenilənmədi:", err);
+    }
   };
 
   // Task CRUD əməliyyatları
@@ -88,20 +87,31 @@ export function AnalysisEditor({ pid, setRoute }) {
     }]);
   };
 
-  const save = () => {
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
     if (!canEdit) return;
-    setAnalyses({
-      ...analyses,
-      [pid]: {
+    setSaving(true);
+    try {
+      // Analiz → DB
+      await analysesApi.save(pid, {
         tasks, jobDescription: jd,
         status: "completed",
-        updatedAt: new Date().toISOString().slice(0, 10),
-        updatedBy: currentUser.full_name,
-      },
-    });
-    const newSalary = salary === "" ? null : Number(salary);
-    if (newSalary !== meta.salary) updateSalaryInStructure(newSalary);
-    pushAudit(existing ? "audit_update" : "audit_create", `${meta.pos} (xronometraj)`);
+        updatedByName: currentUser.full_name,
+      });
+      // Maaş → DB (dəyişibsə)
+      const newSalary = salary === "" ? null : Number(salary);
+      if (newSalary !== meta.salary) await updateSalaryInDB(newSalary);
+
+      pushAudit(existing ? "audit_update" : "audit_create", `${meta.pos} (xronometraj)`);
+      await reloadData();
+      addToast("Analiz yadda saxlandı", "success");
+    } catch (err) {
+      console.error("[YÜKAY] Analiz saxlanılmadı:", err);
+      addToast(err.message || "Xəta baş verdi", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // JD-də olan, amma hələ müsahibə cədvəlinə əlavə olunmamış öhdəliklər
@@ -146,7 +156,7 @@ export function AnalysisEditor({ pid, setRoute }) {
               {canEdit && (
                 <button onClick={save} className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium flex items-center gap-2"
                   style={{ background: theme.sidebar, color: "#fff" }}>
-                  <Save size={14} /> {t("btn_save")}
+                  <Save size={14} /> {saving ? "..." : t("btn_save")}
                 </button>
               )}
             </div>

@@ -117,38 +117,42 @@ export function Stat({ label, value, color }) {
 // ============================================================================
 // Modal pəncərə
 // ============================================================================
-export function Modal({ title, onClose, onSave, children, large }) {
+export function Modal({ title, onClose, onSave, children, large, saving }) {
   const { theme } = useTh();
   const { t } = useT();
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 fade-in"
-         style={{ background: "rgba(11,29,51,0.6)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full modal-enter"
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center fade-in"
+         style={{ background: "rgba(11,29,51,0.6)", backdropFilter: "blur(4px)" }}
+         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full sm:mx-4 modal-enter"
            style={{ maxWidth: large ? "640px" : "480px", background: theme.surface,
-                    border: `1px solid ${theme.border}`, borderRadius: 4,
-                    boxShadow: "0 20px 60px rgba(11,29,51,0.25)", overflow: "hidden" }}>
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: "8px 8px 0 0",
+                    boxShadow: "0 -4px 40px rgba(11,29,51,0.25)", overflow: "hidden",
+                    maxHeight: "92vh", display: "flex", flexDirection: "column" }}>
+        <style>{`@media(min-width:640px){.modal-enter{border-radius:4px!important;box-shadow:0 20px 60px rgba(11,29,51,0.25)!important}}`}</style>
         {/* Başlıq */}
-        <div className="flex items-center justify-between px-5 py-4"
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 flex-shrink-0"
              style={{ borderBottom: `1px solid ${theme.border}`, background: theme.surfaceAlt }}>
-          <h3 className="text-sm font-semibold" style={{ color: theme.text }}>{title}</h3>
-          <button onClick={onClose} className="p-1 rounded hover:opacity-70"
+          <h3 className="text-sm font-semibold truncate pr-2" style={{ color: theme.text }}>{title}</h3>
+          <button onClick={onClose} className="p-1.5 flex-shrink-0 hover:opacity-70"
                   style={{ color: theme.textMuted }}>
             <X size={16} />
           </button>
         </div>
-        {/* Məzmun */}
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">{children}</div>
-        {/* Footer */}
-        <div className="px-5 py-3.5 flex justify-end gap-2.5"
+        {/* Məzmun — scroll edir */}
+        <div className="px-4 sm:px-5 py-4 space-y-4 overflow-y-auto flex-1">{children}</div>
+        {/* Footer — sabit */}
+        <div className="px-4 sm:px-5 py-3 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 flex-shrink-0"
              style={{ borderTop: `1px solid ${theme.border}`, background: theme.surfaceAlt }}>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium"
-                  style={{ border: `1px solid ${theme.border}`, color: theme.textMuted,
-                           borderRadius: 2 }}>
+          <button onClick={onClose} className="px-4 py-2.5 sm:py-2 text-sm font-medium text-center"
+                  style={{ border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 2 }}>
             {t("btn_cancel")}
           </button>
-          <button onClick={onSave} className="px-4 py-2 text-sm font-semibold text-white"
+          <button onClick={onSave} disabled={saving}
+                  className="px-4 py-2.5 sm:py-2 text-sm font-semibold text-white text-center disabled:opacity-50"
                   style={{ background: theme.accent, borderRadius: 2 }}>
-            {t("btn_save")}
+            {saving ? "..." : t("btn_save")}
           </button>
         </div>
       </div>
@@ -282,4 +286,44 @@ export function StatusBadge({ children, color, bg }) {
 export function Divider() {
   const { theme } = useTh();
   return <div style={{ borderTop: `1px solid ${theme.borderSoft}`, margin: "4px 0" }} />;
+}
+
+// ============================================================================
+// Toast Notification sistemi
+// ============================================================================
+export function ToastContainer({ toasts, removeToast }) {
+  return (
+    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0"
+         style={{ pointerEvents: "none" }}>
+      {toasts.map((toast) => (
+        <Toast key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
+      ))}
+    </div>
+  );
+}
+
+function Toast({ toast, onClose }) {
+  const { theme } = useTh();
+  const bgMap = { success: theme.successBg, error: theme.dangerBg, info: theme.infoBg, warn: theme.warnBg };
+  const colorMap = { success: theme.success, error: theme.danger, info: theme.info, warn: theme.warn };
+  const bg = bgMap[toast.type] || theme.surfaceAlt;
+  const color = colorMap[toast.type] || theme.text;
+
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fade-in flex items-start gap-2.5 px-4 py-3 text-sm shadow-lg"
+         style={{ background: bg, border: `1px solid ${color}30`, color: theme.text,
+                  borderRadius: 4, pointerEvents: "auto" }}>
+      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: color }} />
+      <span className="flex-1 text-xs leading-relaxed">{toast.message}</span>
+      <button onClick={onClose} className="flex-shrink-0 opacity-50 hover:opacity-100"
+              style={{ color: theme.textMuted }}>
+        <X size={12} />
+      </button>
+    </div>
+  );
 }

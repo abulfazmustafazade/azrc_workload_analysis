@@ -12,3 +12,7 @@ export const useT = () => useContext(LangCtx);
 // Auth + state konteksti — istifadəçi, RBAC helperləri və qlobal state
 export const AuthCtx = createContext(null);
 export const useAuth = () => useContext(AuthCtx);
+
+// Toast notification konteksti
+export const ToastCtx = createContext({ addToast: () => {} });
+export const useToast = () => useContext(ToastCtx);
