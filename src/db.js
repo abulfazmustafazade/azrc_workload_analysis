@@ -45,7 +45,11 @@ export const authApi = {
       .eq("id", user.id)
       .single();
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      scope: data.scope?.includes("*") ? "all" : (data.scope || []),
+      created_at: data.created_at?.slice(0, 10),
+    };
   },
 
   onAuthStateChange(callback) {
